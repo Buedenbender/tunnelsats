@@ -11,6 +11,7 @@ import logo from "./media/tunnelsats_headerlogo3.png";
 import WorldMap from "./components/WorldMap";
 import { Form, InputGroup } from "react-bootstrap";
 import { IoIosRefresh } from "react-icons/io";
+import Thunder from "./components/Thunder";
 
 // helper
 const getDate = (timestamp) =>
@@ -246,15 +247,14 @@ function App() {
               </Nav.Link>
             </Nav>
             {/*}
-            <Nav>
-              <Button onClick={() => renderLoginModal()} variant="outline-info">Login</Button>
-              <LoginModal show={isLoginModal} handleClose={hideLoginModal} />
-            </Nav>
-            */}
+    <Nav>
+      <Button onClick={() => renderLoginModal()} variant="outline-info">Login</Button>
+      <LoginModal show={isLoginModal} handleClose={hideLoginModal} />
+    </Nav>
+    */}
           </Container>
         </Navbar>
       </Container>
-
       <Container className="main-middle">
         <Row>
           <Col>
@@ -265,14 +265,14 @@ function App() {
             <WorldMap selected={country} onSelect={updateCountry} />
 
             {/*<KeyInput
-          publicKey={keyPair.publicKey}
-          privateKey={keyPair.privateKey}
-          presharedKey={keyPair.presharedKey}
-          newPrivateKey={(privateKey) => {keyPair.privateKey = privateKey}}
-          newPublicKey={(publicKey) => {keyPair.publicKey = publicKey}}
-          newPresharedKey={(presharedKey) => {keyPair.presharedKey = presharedKey}}
-          />
-          */}
+  publicKey={keyPair.publicKey}
+  privateKey={keyPair.privateKey}
+  presharedKey={keyPair.presharedKey}
+  newPrivateKey={(privateKey) => {keyPair.privateKey = privateKey}}
+  newPublicKey={(publicKey) => {keyPair.publicKey = publicKey}}
+  newPresharedKey={(presharedKey) => {keyPair.presharedKey = presharedKey}}
+  />
+  */}
             <Form>
               <Form.Group className="mb-2">
                 <InputGroup>
@@ -283,12 +283,11 @@ function App() {
                     defaultValue={keyPair.privateKey}
                     onChange={(event) => {
                       keyPair.privateKey = event.target.value;
-                    }}
-                  />
+                    } } />
                   <Button
                     onClick={() => {
                       displayNewPair(window.wireguard.generateKeypair);
-                    }}
+                    } }
                     variant="secondary"
                   >
                     <IoIosRefresh color="white" size={20} title="renew keys" />
@@ -302,8 +301,7 @@ function App() {
                     defaultValue={keyPair.publicKey}
                     onChange={(event) => {
                       keyPair.publicKey = event.target.value;
-                    }}
-                  />
+                    } } />
                 </InputGroup>
                 <InputGroup>
                   <InputGroup.Text>Preshared Key</InputGroup.Text>
@@ -313,8 +311,7 @@ function App() {
                     defaultValue={keyPair.presharedKey}
                     onChange={(event) => {
                       keyPair.presharedKey = event.target.value;
-                    }}
-                  />
+                    } } />
                 </InputGroup>
               </Form.Group>
             </Form>
@@ -328,7 +325,7 @@ function App() {
               value={payment_request}
               download={() => {
                 download("tunnelsatsv2.conf", payment_request);
-              }}
+              } }
               showNewInvoice={() => {
                 getInvoice(
                   priceDollar * satsPerDollar,
@@ -338,15 +335,12 @@ function App() {
                   country
                 );
                 setSpinner(true);
-              }}
+              } }
               handleClose={closeInvoiceModal}
               emailAddress={emailAddress}
               expiryDate={getTimeStamp(priceDollar)}
-              sendEmail={(data) =>
-                sendEmail(data, payment_request, getTimeStamp(priceDollar))
-              }
-              showPaymentAlert={showPaymentSuccessfull}
-            />
+              sendEmail={(data) => sendEmail(data, payment_request, getTimeStamp(priceDollar))}
+              showPaymentAlert={showPaymentSuccessfull} />
 
             <div className="price">
               <h3>
@@ -370,7 +364,7 @@ function App() {
                   updatePaymentrequest();
                   setSpinner(true);
                   isPaid = false;
-                }}
+                } }
                 variant="outline-warning"
               >
                 Generate Invoice
