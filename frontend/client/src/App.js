@@ -225,46 +225,48 @@ function App() {
   };
 
   return (
-    <div>
-      <Container>
-        <Navbar variant="dark" expanded="true">
-          <Container>
-            <Navbar.Brand href="#">Tunnel⚡️Sats</Navbar.Brand>
-            <Nav className="me-auto">
-              <Nav.Link
-                href="https://blckbx.github.io/tunnelsats"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Guide
-              </Nav.Link>
-              <Nav.Link
-                href="https://blckbx.github.io/tunnelsats/FAQ.html"
-                target="_blank"
-                rel="noreferrer"
-              >
-                FAQ
-              </Nav.Link>
-            </Nav>
-            {/*}
+    <>
+      <div>
+        <Container>
+          <Navbar variant="dark" expanded="true">
+            <Container>
+              <Navbar.Brand href="#">Tunnel⚡️Sats</Navbar.Brand>
+              <Nav className="me-auto">
+                <Nav.Link
+                  href="https://blckbx.github.io/tunnelsats"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Guide
+                </Nav.Link>
+                <Nav.Link
+                  href="https://blckbx.github.io/tunnelsats/FAQ.html"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  FAQ
+                </Nav.Link>
+              </Nav>
+              {/*}
     <Nav>
       <Button onClick={() => renderLoginModal()} variant="outline-info">Login</Button>
       <LoginModal show={isLoginModal} handleClose={hideLoginModal} />
     </Nav>
     */}
-          </Container>
-        </Navbar>
-      </Container>
-      <Container className="main-middle">
-        <Row>
-          <Col>
-            <img src={logo} alt="" />
+            </Container>
+          </Navbar>
+        </Container>
 
-            <HeaderInfo />
+        <Container className="main-middle">
+          <Row>
+            <Col>
+              <img src={logo} alt="" />
 
-            <WorldMap selected={country} onSelect={updateCountry} />
+              <HeaderInfo />
 
-            {/*<KeyInput
+              <WorldMap selected={country} onSelect={updateCountry} />
+
+              {/*<KeyInput
   publicKey={keyPair.publicKey}
   privateKey={keyPair.privateKey}
   presharedKey={keyPair.presharedKey}
@@ -273,85 +275,67 @@ function App() {
   newPresharedKey={(presharedKey) => {keyPair.presharedKey = presharedKey}}
   />
   */}
-            <Form>
-              <Form.Group className="mb-2">
-                <InputGroup>
-                  <InputGroup.Text>Private Key</InputGroup.Text>
-                  <Form.Control
-                    disabled
-                    key={keyPair.privateKey}
-                    defaultValue={keyPair.privateKey}
-                    onChange={(event) => {
-                      keyPair.privateKey = event.target.value;
-                    } } />
-                  <Button
-                    onClick={() => {
-                      displayNewPair(window.wireguard.generateKeypair);
-                    } }
-                    variant="secondary"
-                  >
-                    <IoIosRefresh color="white" size={20} title="renew keys" />
-                  </Button>
-                </InputGroup>
-                <InputGroup>
-                  <InputGroup.Text>Public Key</InputGroup.Text>
-                  <Form.Control
-                    disabled
-                    key={keyPair.publicKey}
-                    defaultValue={keyPair.publicKey}
-                    onChange={(event) => {
-                      keyPair.publicKey = event.target.value;
-                    } } />
-                </InputGroup>
-                <InputGroup>
-                  <InputGroup.Text>Preshared Key</InputGroup.Text>
-                  <Form.Control
-                    disabled
-                    key={keyPair.presharedKey}
-                    defaultValue={keyPair.presharedKey}
-                    onChange={(event) => {
-                      keyPair.presharedKey = event.target.value;
-                    } } />
-                </InputGroup>
-              </Form.Group>
-            </Form>
+              <Form>
+                <Form.Group className="mb-2">
+                  <InputGroup>
+                    <InputGroup.Text>Private Key</InputGroup.Text>
+                    <Form.Control
+                      disabled
+                      key={keyPair.privateKey}
+                      defaultValue={keyPair.privateKey}
+                      onChange={(event) => {
+                        keyPair.privateKey = event.target.value;
+                      }}
+                    />
+                    <Button
+                      onClick={() => {
+                        displayNewPair(window.wireguard.generateKeypair);
+                      }}
+                      variant="secondary"
+                    >
+                      <IoIosRefresh
+                        color="white"
+                        size={20}
+                        title="renew keys"
+                      />
+                    </Button>
+                  </InputGroup>
+                  <InputGroup>
+                    <InputGroup.Text>Public Key</InputGroup.Text>
+                    <Form.Control
+                      disabled
+                      key={keyPair.publicKey}
+                      defaultValue={keyPair.publicKey}
+                      onChange={(event) => {
+                        keyPair.publicKey = event.target.value;
+                      }}
+                    />
+                  </InputGroup>
+                  <InputGroup>
+                    <InputGroup.Text>Preshared Key</InputGroup.Text>
+                    <Form.Control
+                      disabled
+                      key={keyPair.presharedKey}
+                      defaultValue={keyPair.presharedKey}
+                      onChange={(event) => {
+                        keyPair.presharedKey = event.target.value;
+                      }}
+                    />
+                  </InputGroup>
+                </Form.Group>
+              </Form>
 
-            <RuntimeSelector onClick={runtimeSelect} />
+              <RuntimeSelector onClick={runtimeSelect} />
 
-            <InvoiceModal
-              show={visibleInvoiceModal}
-              showSpinner={showSpinner}
-              isConfigModal={isConfigModal}
-              value={payment_request}
-              download={() => {
-                download("tunnelsatsv2.conf", payment_request);
-              } }
-              showNewInvoice={() => {
-                getInvoice(
-                  priceDollar * satsPerDollar,
-                  keyPair.publicKey,
-                  keyPair.presharedKey,
-                  priceDollar,
-                  country
-                );
-                setSpinner(true);
-              } }
-              handleClose={closeInvoiceModal}
-              emailAddress={emailAddress}
-              expiryDate={getTimeStamp(priceDollar)}
-              sendEmail={(data) => sendEmail(data, payment_request, getTimeStamp(priceDollar))}
-              showPaymentAlert={showPaymentSuccessfull} />
-
-            <div className="price">
-              <h3>
-                {Math.trunc(priceDollar * satsPerDollar).toLocaleString()}{" "}
-                <i class="fak fa-satoshisymbol-solidtilt" />
-              </h3>
-            </div>
-
-            <div className="main-buttons">
-              <Button
-                onClick={() => {
+              <InvoiceModal
+                show={visibleInvoiceModal}
+                showSpinner={showSpinner}
+                isConfigModal={isConfigModal}
+                value={payment_request}
+                download={() => {
+                  download("tunnelsatsv2.conf", payment_request);
+                }}
+                showNewInvoice={() => {
                   getInvoice(
                     priceDollar * satsPerDollar,
                     keyPair.publicKey,
@@ -359,62 +343,92 @@ function App() {
                     priceDollar,
                     country
                   );
-                  showInvoiceModal();
-                  hideConfigModal();
-                  updatePaymentrequest();
                   setSpinner(true);
-                  isPaid = false;
-                } }
-                variant="outline-warning"
-              >
-                Generate Invoice
-              </Button>
-            </div>
+                }}
+                handleClose={closeInvoiceModal}
+                emailAddress={emailAddress}
+                expiryDate={getTimeStamp(priceDollar)}
+                sendEmail={(data) =>
+                  sendEmail(data, payment_request, getTimeStamp(priceDollar))
+                }
+                showPaymentAlert={showPaymentSuccessfull}
+              />
 
-            <div className="footer-text">
-              <Row>
-                <Col>
-                  <a
-                    href="https://twitter.com/TunnelSats"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <span class="icon icon-twitter"></span>
-                  </a>
-                </Col>
-                <Col>
-                  <a
-                    href="https://github.com/blckbx/tunnelsats"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <span class="icon icon-github"></span>
-                  </a>
-                </Col>
-                <Col>
-                  <a
-                    href={REACT_APP_LNBITS_URL}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <span class="icon icon-heart"></span>
-                  </a>
-                </Col>
-                <Col>
-                  <a
-                    href="https://t.me/+NJylaUom-rxjYjU6"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <span class="icon icon-telegram"></span>
-                  </a>
-                </Col>
-              </Row>
-            </div>
-          </Col>
-        </Row>
-      </Container>
-    </div>
+              <div className="price">
+                <h3>
+                  {Math.trunc(priceDollar * satsPerDollar).toLocaleString()}{" "}
+                  <i class="fak fa-satoshisymbol-solidtilt" />
+                </h3>
+              </div>
+
+              <div className="main-buttons">
+                <Button
+                  onClick={() => {
+                    getInvoice(
+                      priceDollar * satsPerDollar,
+                      keyPair.publicKey,
+                      keyPair.presharedKey,
+                      priceDollar,
+                      country
+                    );
+                    showInvoiceModal();
+                    hideConfigModal();
+                    updatePaymentrequest();
+                    setSpinner(true);
+                    isPaid = false;
+                  }}
+                  variant="outline-warning"
+                >
+                  Generate Invoice
+                </Button>
+              </div>
+
+              <div className="footer-text">
+                <Row>
+                  <Col>
+                    <a
+                      href="https://twitter.com/TunnelSats"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <span class="icon icon-twitter"></span>
+                    </a>
+                  </Col>
+                  <Col>
+                    <a
+                      href="https://github.com/blckbx/tunnelsats"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <span class="icon icon-github"></span>
+                    </a>
+                  </Col>
+                  <Col>
+                    <a
+                      href={REACT_APP_LNBITS_URL}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <span class="icon icon-heart"></span>
+                    </a>
+                  </Col>
+                  <Col>
+                    <a
+                      href="https://t.me/+NJylaUom-rxjYjU6"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <span class="icon icon-telegram"></span>
+                    </a>
+                  </Col>
+                </Row>
+              </div>
+            </Col>
+          </Row>
+        </Container>       
+      </div>
+      <Thunder />
+    </>
   );
 }
 
