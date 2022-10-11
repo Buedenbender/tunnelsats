@@ -112,6 +112,9 @@ function App() {
   // github last commit hash
   const [commitHash, setCommitHash] = useState("");
 
+  // server table [domain, country code, ping]
+  const serverTable = [];
+
   //Successful payment alert
   const renderAlert = (show) => {
     setPaymentAlert(show);
@@ -147,6 +150,9 @@ function App() {
 
     // get latest commit hash
     getCommitHash();
+
+    //get server latency
+    getLatency();
   });
 
   // get node stats from mempool.space
@@ -172,6 +178,16 @@ function App() {
       result.clearnet_tor_nodes,
       result.tor_nodes,
     ]);
+  });
+
+  const getLatency = () => {
+    socket.removeAllListeners("getLatency").emit("getLatency");
+    DEBUG && console.log(`${getDate()} App.js: server.getLatency() ${socket.id}`);
+  };
+
+  socket.off("receiveLatency").on("receiveLatency", (result) => {
+    DEBUG && console.log(`${JSON.stringify(result)}`);
+    serverTable = result;
   });
 
   const getDiscount = () => {
@@ -734,7 +750,7 @@ function App() {
                   selected={country}
                   onSelect={updateCountry}
                   pointerEvents={"all"}
-                />
+                  serverTable={serverTable} />
                 <hr />
 
                 <Form>

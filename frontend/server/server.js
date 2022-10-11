@@ -12,6 +12,7 @@ const lightningPayReq = require("bolt11");
 const { SocksProxyAgent } = require("socks-proxy-agent");
 const fetch = require("node-fetch-commonjs");
 const { logDim } = require("./logger");
+const ping = require("ping");
 require("dotenv").config();
 
 DEBUG = true;
@@ -55,6 +56,18 @@ const REACT_APP_ONE_YEAR = process.env.REACT_APP_ONE_YEAR || 28.5;
 // fetch latest git commit hash
 const URL_GIT_COMMIT_HASH = process.env.URL_GIT_COMMIT_HASH || "";
 
+// vpn servers
+let servers = [
+  { domain: "de1.tunnelsats.com", country: "eu", ping: 0 },
+  { domain: "de2.tunnelsats.com", country: "eu2", ping: 0 },
+  { domain: "us1.tunnelsats.com", country: "na", ping: 0 },
+  { domain: "sg1.tunnelsats.com", country: "as", ping: 0 },
+  { domain: "br1.tunnelsats.com", country: "sa", ping: 0 },
+  { domain: "ca1.tunnelsats.com", country: "ca", ping: 0 },
+];
+// timer for ping stats
+const TIMERPINGLATENCY = 60 * 60000;
+
 // Cleaning Ram from old PaymentRequest data
 
 const intervalId = setInterval(function () {
@@ -80,6 +93,26 @@ const intervalId = setInterval(function () {
     }
   }
 }, TIMERCLEANINGINVOICEDATA);
+
+
+// ping servers periodically to fetch latencies (ms)
+setInterval(async function () {
+  DEBUG && logDim("Fetching Latency Stats Periodically...");
+
+  for(const server in servers) {
+    await ping.promise.probe(server.domain, {
+      timeout: 10,
+      extra: ['-i', '2'],
+    }).then(function (res) {
+      if(res.alive) {
+        DEBUG && logDim(`${server.domain} - avg latency: ${res.avg}`);
+        server.ping = res.avg;
+      } else {
+        server.ping = null;
+      }
+    }).catch((error) => { return error; });
+  }
+}, TIMERPINGLATENCY);
 
 // Telegram Bot
 
@@ -386,14 +419,6 @@ io.on("connection", (socket) => {
     let keyID;
     let subscriptionEnd;
     let success = false;
-    const servers = [
-      { domain: "de1.tunnelsats.com", country: "eu" },
-      { domain: "de2.tunnelsats.com", country: "eu2" },
-      { domain: "us1.tunnelsats.com", country: "na" },
-      { domain: "sg1.tunnelsats.com", country: "as" },
-      { domain: "br1.tunnelsats.com", country: "sa" },
-      { domain: "ca1.tunnelsats.com", country: "ca" },
-    ];
 
     for (const serverURL of servers) {
       if (!success) {
@@ -545,6 +570,16 @@ io.on("connection", (socket) => {
         return error;
       });
   });
+
+  // getLatency
+  socket.on("getLatency", () => {
+    logDim(`getLatency id: ${socket.id}`);
+    getLatency().then((result) => {
+      io.to(socket.id).emit("receiveLatency", result);
+      logDim(`getLatency result: ${result}`);
+    })
+
+  })
 
   // disconnect
   socket.on("disconnect", () => {
@@ -714,6 +749,11 @@ async function getCommitHash() {
       logDim(`Error - getCommitHash() ${error}`);
       return null;
     });
+}
+
+// get latency of vpn servers
+async function getLatency() {
+  return [servers.ping];
 }
 
 // Get Wireguard Config
