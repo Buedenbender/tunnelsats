@@ -113,7 +113,7 @@ function App() {
   const [commitHash, setCommitHash] = useState("");
 
   // server table [domain, country code, ping]
-  const serverTable = [];
+  let [serverTable, setServerTable] = useState[{domain: "", country: "", ping: 0}];
 
   //Successful payment alert
   const renderAlert = (show) => {
@@ -187,7 +187,7 @@ function App() {
 
   socket.off("receiveLatency").on("receiveLatency", (result) => {
     DEBUG && console.log(`${JSON.stringify(result)}`);
-    serverTable = result;
+    setServerTable(result);
   });
 
   const getDiscount = () => {

@@ -12,7 +12,7 @@ const lightningPayReq = require("bolt11");
 const { SocksProxyAgent } = require("socks-proxy-agent");
 const fetch = require("node-fetch-commonjs");
 const { logDim } = require("./logger");
-const ping = require("ping");
+var ping = require("ping");
 require("dotenv").config();
 
 DEBUG = true;
@@ -58,15 +58,15 @@ const URL_GIT_COMMIT_HASH = process.env.URL_GIT_COMMIT_HASH || "";
 
 // vpn servers
 let servers = [
-  { domain: "de1.tunnelsats.com", country: "eu", ping: 0 },
-  { domain: "de2.tunnelsats.com", country: "eu2", ping: 0 },
-  { domain: "us1.tunnelsats.com", country: "na", ping: 0 },
-  { domain: "sg1.tunnelsats.com", country: "as", ping: 0 },
-  { domain: "br1.tunnelsats.com", country: "sa", ping: 0 },
-  { domain: "ca1.tunnelsats.com", country: "ca", ping: 0 },
+  { domain: "de1.tunnelsats.com", country: "eu", ping: 31 },
+  { domain: "de2.tunnelsats.com", country: "eu2", ping: 38 },
+  { domain: "us1.tunnelsats.com", country: "na", ping: 126 },
+  { domain: "sg1.tunnelsats.com", country: "as", ping: 192 },
+  { domain: "br1.tunnelsats.com", country: "sa", ping: 226 },
+  { domain: "ca1.tunnelsats.com", country: "ca", ping: 126 },
 ];
 // timer for ping stats
-const TIMERPINGLATENCY = 60 * 60000;
+const TIMERPINGLATENCY = 10 * 60000;
 
 // Cleaning Ram from old PaymentRequest data
 
@@ -96,22 +96,20 @@ const intervalId = setInterval(function () {
 
 
 // ping servers periodically to fetch latencies (ms)
-setInterval(async function () {
+const fillTable = setInterval(function () {
   DEBUG && logDim("Fetching Latency Stats Periodically...");
 
-  for(const server in servers) {
-    await ping.promise.probe(server.domain, {
-      timeout: 10,
-      extra: ['-i', '2'],
-    }).then(function (res) {
-      if(res.alive) {
-        DEBUG && logDim(`${server.domain} - avg latency: ${res.avg}`);
-        server.ping = res.avg;
-      } else {
-        server.ping = null;
-      }
-    }).catch((error) => { return error; });
-  }
+  /* servers.map(async (server) => {
+    let res = await ping.promise.probe(server.domain, { timeout: 2 });
+    if(res.alive) {
+      DEBUG && logDim(`${server.domain} - avg latency: ${res.avg}`);
+      ping = parseInt(res.avg);
+    } else {
+      DEBUG && logDim(`${server.domain} - no ping`);
+      ping = 0;
+    }
+  }) */
+
 }, TIMERPINGLATENCY);
 
 // Telegram Bot
@@ -564,7 +562,7 @@ io.on("connection", (socket) => {
     getNodeStats()
       .then((result) => {
         io.to(socket.id).emit("receiveNodeStats", result);
-        logDim(`getNodeStats() result: ${result}`);
+        logDim(`getNodeStats() result: ${JSON.stringify(result)}`);
       })
       .catch((error) => {
         return error;
@@ -574,12 +572,9 @@ io.on("connection", (socket) => {
   // getLatency
   socket.on("getLatency", () => {
     logDim(`getLatency id: ${socket.id}`);
-    getLatency().then((result) => {
-      io.to(socket.id).emit("receiveLatency", result);
-      logDim(`getLatency result: ${result}`);
-    })
-
-  })
+    io.to(socket.id).emit("receiveLatency", servers);
+    logDim(`getLatency result: ${JSON.stringify(servers)}`);
+  });
 
   // disconnect
   socket.on("disconnect", () => {
@@ -751,10 +746,6 @@ async function getCommitHash() {
     });
 }
 
-// get latency of vpn servers
-async function getLatency() {
-  return [servers.ping];
-}
 
 // Get Wireguard Config
 async function getWireguardConfig(publicKey, presharedKey, timestamp, server) {
