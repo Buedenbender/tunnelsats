@@ -47,7 +47,6 @@ echo
 # Check if docker / non-docker
 isDocker=0
 killswitchRaspi=0
-hostName=$(hostname)
 dockerScriptPrefix=""
 dockerMainDir=""
 
