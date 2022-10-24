@@ -74,7 +74,8 @@ while true; do
     echo
     isDocker=1
     dockerScriptPrefix="umbrel"
-    dockerMainDir=$(find / -maxdepth 5 -not -path "/mnt/*" -type f -name ".env" -print 2>/dev/null | xargs -r -I {} dirname {})
+    dockerMainDir=$(find / -maxdepth 6 -not -path "/mnt/*" -type f -name "bitcoin.conf" -print 2>/dev/null | sed -e 's#/bitcoin/bitcoin.conf##')
+
     if [[ $dockerMainDir =~ [[:space:]] ]]; then
       echo "> umbrel main path is ambigious"
       echo "> error: $dockerMainDir (contains more than one)"
@@ -104,7 +105,7 @@ while true; do
     echo
     isDocker=1
     dockerScriptPrefix="citadel"
-    dockerMainDir=$(find / -maxdepth 5 -not -path "/mnt/*" -type f -name ".env" -print 2>/dev/null | xargs -r -I {} dirname {})
+    dockerMainDir=$(find / -maxdepth 6 -not -path "/mnt/*" -type f -name "bitcoin.conf" -print 2>/dev/null | sed -e 's#/bitcoin/bitcoin.conf##')
     if [[ $dockerMainDir =~ [[:space:]] ]]; then
       echo "> citadel main path is ambigious"
       echo "> error: $dockerMainDir (contains more than one)"
