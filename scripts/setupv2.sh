@@ -77,9 +77,9 @@ while true; do
     dockerMainDir=$(find / -maxdepth 6 -not -path "/mnt/*" -type f -name "bitcoin.conf" -print 2>/dev/null | sed -e 's#/bitcoin/bitcoin.conf##')
 
     if [[ $dockerMainDir =~ [[:space:]] ]]; then
-      echo "> umbrel main path is ambigious"
+      echo "> umbrel main path is ambiguous"
       echo "> error: $dockerMainDir (contains more than one)"
-      echo "> your umbrel setup is not compatibel with tunnelsats"
+      echo "> your umbrel setup is not compatible with TunnelSats"
       exit 1
     fi
     break
@@ -107,15 +107,15 @@ while true; do
     dockerScriptPrefix="citadel"
     dockerMainDir=$(find / -maxdepth 6 -not -path "/mnt/*" -type f -name "bitcoin.conf" -print 2>/dev/null | sed -e 's#/bitcoin/bitcoin.conf##')
     if [[ $dockerMainDir =~ [[:space:]] ]]; then
-      echo "> citadel main path is ambigious"
+      echo "> citadel main path is ambiguous"
       echo "> error: $dockerMainDir (contains more than one)"
-      echo "> your citadel setup is not compatibel with tunnelsats"
+      echo "> your citadel setup is not compatible with TunnelSats"
       exit 1
     fi
     break
     ;;
 
-  *) echo "Please enter a number from 1 to 4." ;;
+  *) echo "Please enter a number from 1 to 5." ;;
   esac
 done
 
@@ -477,9 +477,8 @@ else
 fi
 " >/etc/wireguard/tunnelsats-create-cgroup.sh
 
-  chmod +x /etc/wireguard/tunnelsats-create-cgroup.sh
-
   if [ -f /etc/wireguard/tunnelsats-create-cgroup.sh ]; then
+    chmod +x /etc/wireguard/tunnelsats-create-cgroup.sh
     echo "> /etc/wireguard/tunnelsats-create-cgroup.sh created."
     echo
   else
@@ -584,8 +583,8 @@ fi
 " >/etc/wireguard/tunnelsats-splitting-processes.sh
 
   if [ -f /etc/wireguard/tunnelsats-splitting-processes.sh ]; then
-    echo "> /etc/wireguard/tunnelsats-splitting-processes.sh created"
     chmod +x /etc/wireguard/tunnelsats-splitting-processes.sh
+    echo "> /etc/wireguard/tunnelsats-splitting-processes.sh created"
   else
     echo "> ERR: /etc/wireguard/tunnelsats-splitting-processes.sh was not created. Please check for errors."
     exit 1
@@ -673,6 +672,7 @@ WantedBy=timers.target
     echo
     exit 1
   fi
+
   # Raspiblitz new API breaks with tunnelsats and needs a new dependency to the wg tunnelsats interface
   if [ -f /etc/systemd/system/blitzapi.service ]; then
 
@@ -1186,10 +1186,10 @@ if [ "$lnImplementation" == "cln" ]; then
 Before editing, please create a backup of your current CLN config file.
 Then edit and add or modify the following lines. Please note that
 settings could already be part of your configuration file
-and duplicated lines could lead to errors.
+and duplicate entries could lead to errors.
 
 ###############################################################################
-Umbrel|Citadel 0.5+:
+Umbrel 0.5+ | Citadel:
 create CLN config file 'config':
   $ nano ${dockerMainDir}/app-data/core-lightning/data/lightningd/bitcoin/config 
 insert:
@@ -1201,7 +1201,6 @@ edit 'export.sh':
   $ nano ${dockerMainDir}/app-data/core-lightning/export.sh
 change assigned port of APP_CORE_LIGHTNING_DAEMON_PORT from 9736 to 9735:
   export APP_CORE_LIGHTNING_DAEMON_PORT=\"9735\"
-
 ###############################################################################
 
 Native CLN installation (config file):
