@@ -48,13 +48,17 @@ echo
 isDocker=0
 killswitchRaspi=0
 hostName=$(hostname)
+dockerScriptPrefix=""
+dockerMainDir=""
 
 while true; do
   read -p "What lightning node package are you running?: 
     1) RaspiBlitz
-    2) Umbrel | Citadel
+    2) Umbrel
     3) myNode
     4) RaspiBolt / Bare Metal
+    5) Citadel
+
     > " answer
 
   case $answer in
@@ -67,9 +71,16 @@ while true; do
     ;;
 
   2)
-    echo "> Umbrel | Citadel"
+    echo "> Umbrel"
     echo
     isDocker=1
+    dockerScriptPrefix="umbrel"
+    dockerMainDir=$(find / -maxdepth 5 -not -path "/mnt/*" -type f -name ".env" -print 2>/dev/null | xargs -r -I {} dirname {})
+    if [[ $dockerMainDir =~ [[:space:]] ]]; then
+      echo "> umbrel path is not ambigious"
+      echo "> your umbrel setup is not compatibel with tunnelsats"
+      exit 1
+    fi
     break
     ;;
 
@@ -85,6 +96,20 @@ while true; do
     echo
     isDocker=0
 
+    break
+    ;;
+
+  5)
+    echo "> citadel"
+    echo
+    isDocker=1
+    dockerScriptPrefix="citadel"
+    dockerMainDir=$(find / -maxdepth 5 -not -path "/mnt/*" -type f -name ".env" -print 2>/dev/null | xargs -r -I {} dirname {})
+    if [[ $dockerMainDir =~ [[:space:]] ]]; then
+      echo "> citadel path is not ambigious"
+      echo "> your citadel setup is not compatibel with tunnelsats"
+      exit 1
+    fi
     break
     ;;
 
@@ -211,6 +236,13 @@ if [ $checknft -eq 0 ]; then
 else
   echo "> nftables found"
   echo
+fi
+
+# Check Path variable for Userland Tool nft
+checkNftPath=$(echo $PATH 2>/dev/null | grep -c "/usr/sbin")
+if [ $checkNftPath -eq 0 ]; then
+  export PATH=$PATH:/usr/sbin
+  echo "> updated PATH variable for nft-tool"
 fi
 
 sleep 2
@@ -730,11 +762,11 @@ if [ $isDocker -eq 1 ]; then
   localsubnet="$(hostname -I | awk '{print $1}' | cut -d"." -f1-3)".0/24
 
   #Get docker umbrel|citadel lnd/cln ip address
-  dockerlndip=$(grep ^LND_IP "$HOME"/${hostName}/.env 2>/dev/null | cut -d= -f2)
+  dockerlndip=$(grep ^LND_IP ${dockerMainDir}/.env 2>/dev/null | cut -d= -f2)
   dockerlndip=${dockerlndip:-"10.21.21.9"}
 
-  if [ -d "$HOME"/${hostName}/app-data/core-lightning ]; then
-    dockerclnip=$(grep APP_CORE_LIGHTNING_DAEMON_IP "$HOME"/${hostName}/app-data/core-lightning/exports.sh | cut -d "\"" -f2)
+  if [ -d ${dockerMainDir}/app-data/core-lightning ]; then
+    dockerclnip=$(grep APP_CORE_LIGHTNING_DAEMON_IP ${dockerMainDir}/app-data/core-lightning/exports.sh | cut -d "\"" -f2)
   else
     dockerclnip=""
   fi
@@ -808,16 +840,16 @@ table ip tunnelsatsv2 {
   systemctl daemon-reload >/dev/null
   if systemctl enable nftables >/dev/null && systemctl start nftables >/dev/null; then
 
-    if [ ! -d /etc/systemd/system/${hostName}-startup.service.d ]; then
-      mkdir /etc/systemd/system/${hostName}-startup.service.d >/dev/null
+    if [ ! -d /etc/systemd/system/${dockerScriptPrefix}-startup.service.d ]; then
+      mkdir /etc/systemd/system/${dockerScriptPrefix}-startup.service.d >/dev/null
     fi
 
     echo "[Unit]
-Description=Forcing wg-quick to start after ${hostName} startup scripts
-# Make sure kill switch is in place before starting ${hostName} containers
+Description=Forcing wg-quick to start after ${dockerScriptPrefix} startup scripts
+# Make sure kill switch is in place before starting ${dockerScriptPrefix} containers
 Requires=nftables.service
 After=nftables.service
-" >/etc/systemd/system/${hostName}-startup.service.d/tunnelsats_killswitch.conf
+" >/etc/systemd/system/${dockerScriptPrefix}-startup.service.d/tunnelsats_killswitch.conf
 
     #Start nftables service
     systemctl daemon-reload >/dev/null
@@ -968,15 +1000,15 @@ echo "Initializing the service..."
 systemctl daemon-reload >/dev/null
 if systemctl enable wg-quick@tunnelsatsv2 >/dev/null; then
 
-  if [ $isDocker -eq 1 ] && [ -f /etc/systemd/system/${hostName}-startup.service ]; then
+  if [ $isDocker -eq 1 ] && [ -f /etc/systemd/system/${dockerScriptPrefix}-startup.service ]; then
     if [ ! -d /etc/systemd/system/wg-quick@tunnelsatsv2.service.d ]; then
       mkdir /etc/systemd/system/wg-quick@tunnelsatsv2.service.d >/dev/null
     fi
     echo "[Unit]
-Description=Forcing wg-quick to start after ${hostName} startup scripts
-# Make sure to start vpn after $hostnamme start up to have lnd containers available
-Requires=${hostName}-startup.service
-After=${hostName}-startup.service
+Description=Forcing wg-quick to start after ${dockerScriptPrefix} startup scripts
+# Make sure to start vpn after $dockerScriptPrefix start up to have lnd containers available
+Requires=${dockerScriptPrefix}-startup.service
+After=${dockerScriptPrefix}-startup.service
 " >/etc/systemd/system/wg-quick@tunnelsatsv2.service.d/tunnelsatsv2.conf
   fi
 
@@ -1157,14 +1189,14 @@ and duplicated lines could lead to errors.
 ###############################################################################
 Umbrel|Citadel 0.5+:
 create CLN config file 'config':
-  $ nano ${HOME}/${hostName}/app-data/core-lightning/data/lightningd/bitcoin/config 
+  $ nano ${dockerMainDir}/app-data/core-lightning/data/lightningd/bitcoin/config 
 insert:
   bind-addr=10.9.9.9:9735
   announce-addr=${vpnExternalDNS}:${vpnExternalPort}
   always-use-proxy=false
 
 edit 'export.sh':
-  $ nano ${HOME}/${hostName}/app-data/core-lightning/export.sh
+  $ nano ${dockerMainDir}/app-data/core-lightning/export.sh
 change assigned port of APP_CORE_LIGHTNING_DAEMON_PORT from 9736 to 9735:
   export APP_CORE_LIGHTNING_DAEMON_PORT=\"9735\"
 
@@ -1204,8 +1236,8 @@ if [ $isDocker -eq 0 ]; then
   echo
 else
   echo "Restart ${lnImplementation} on Umbrel | Citadel afterwards via the command:
-    sudo ~/${hostName}/scripts/stop
-    sudo ~/${hostName}/scripts/start"
+    sudo ${dockerMainDir}/scripts/stop
+    sudo ${dockerMainDir}/scripts/start"
   echo
 fi
 
